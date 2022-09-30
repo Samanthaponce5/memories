@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import useStyles from './styles'
 import { TextField, Button, Typography, Paper } from '@material-ui/core'
 import FileBase from 'react-file-base64'
+import { createPost, updatePost } from '../../actions/posts'
 
 export default function Form({ currentId, setCurrentId }) {
   const [postData, setPostData] = useState({
@@ -12,15 +13,37 @@ export default function Form({ currentId, setCurrentId }) {
     tags: '',
     selectedFile: '',
   })
-  const post = ''
+  const post = useSelector((state) =>
+    currentId ? state.posts.find((p) => p._id === currentId) : null,
+  )
   const dispatch = useDispatch()
   const classes = useStyles()
 
-  useEffect(() => {}, [])
+  useEffect(() => {
+    if (post) setPostData(post)
+  }, [post])
 
-  const clear = () => {}
+  const clear = () => {
+    setCurrentId(null)
+    setPostData({
+      creator: '',
+      title: '',
+      message: '',
+      tags: '',
+      selectedFile: '',
+    })
+  }
 
-  const handleSubmit = async (e) => {}
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (currentId) {
+      dispatch(updatePost(currentId, postData))
+      clear()
+    } else {
+      dispatch(createPost(postData))
+      clear()
+    }
+  }
 
   return (
     <Paper className={classes.paper}>
@@ -57,7 +80,7 @@ export default function Form({ currentId, setCurrentId }) {
           label="Message"
           fullWidth
           multiline
-          rows={4}
+          minRows={4}
           value={postData.message}
           onChange={(e) =>
             setPostData({ ...postData, message: e.target.value })
